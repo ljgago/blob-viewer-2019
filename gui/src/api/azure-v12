@@ -1,0 +1,107 @@
+// Copyright © 2019 Leonardo Javier Gago <ljgago@gmail.com>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import Cookie from 'universal-cookie'
+import  { AnonymousCredential, BlobServiceClient } from '@azure/storage-blob'
+import { ITreeNode } from "@blueprintjs/core"
+
+export const a = "Hola"
+export const getBlobServiceClient = (): BlobServiceClient => {
+
+  let cookie = new Cookie()
+  const uri = cookie.get("uri")
+  const token = cookie.get("token")
+  console.log("hola pepe")
+  const blobServiceClient = new BlobServiceClient(
+    `${uri}?${token}`,
+    new AnonymousCredential()
+  )
+
+  console.log("hola pepe2")
+  return blobServiceClient
+}
+
+export const TokenCheck = async () => {
+  const blobServiceClient = getBlobServiceClient()
+  try {
+    const info = await blobServiceClient.getAccountInfo()
+    const currentTime = new Date().getTime()
+    const tokenTime = info.date!.getTime()
+    if (tokenTime >= currentTime) {
+        return true
+    }
+  } catch {
+    return false
+  }
+}
+
+export const GetNodeTree = async () => {
+  const blobServiceClient = getBlobServiceClient()
+  let i = 1
+  let node: ITreeNode[] = []
+  for await (const container of blobServiceClient.listContainers()) {
+    const containerClient = blobServiceClient.getContainerClient(container.name)
+    let childNode: ITreeNode[] = []
+    for await (const blob of containerClient.listBlobsFlat()) {
+      childNode.push({
+        id: i,
+        icon: "document",
+        isExpanded: false,
+        label: blob.name,
+      })
+    }
+    node.push({
+      id: i,
+      icon: "folder-close",
+      isExpanded: false,
+      label: container.name,
+      childNodes: childNode,
+    })
+  }
+  return node
+}
+
+/*
+ * Azure 12.preview.2
+ *
+
+export const GetNodeTree = async () => {
+  const serviceURL = getServiceURL()
+  let i = 1
+  let node: ITreeNode[] = []
+  for await (const container of blobServiceClient.listContainers()) {
+    const containerClient = blobServiceClient.getContainerClient(container.name)
+    let childNode: ITreeNode[] = []
+    for await (const blob of containerClient.listBlobsFlat()) {
+      childNode.push({
+        id: i,
+        icon: "document",
+        isExpanded: false,
+        label: blob.name,
+      })
+    }
+    node.push({
+      id: i,
+      icon: "folder-close",
+      isExpanded: false,
+      label: container.name,
+      childNodes: childNode,
+    })
+  }
+  return node
+}
+ */
+
+
+  
