@@ -17,7 +17,7 @@ Optional:
 You can bundling static assets from react-app with `Packr v2`, just run the next command in the root project folder:
 
 ```bash
-go get -u github.com/gobuffalo/packr/v2/packr2 & packr2
+go get -u github.com/gobuffalo/packr/v2/packr2 && packr2
 ```
 
 Compile the Go project:
